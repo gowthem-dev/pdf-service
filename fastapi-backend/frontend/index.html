@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Code Security Scanner</title>
+
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      padding: 40px;
+      background: #f4f6f9;
+      color: #1f2937;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    h2 {
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      color: #64748b;
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 15px;
+    }
+
+    .badge-beta {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      margin-bottom: 12px;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      resize: vertical;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+
+    .actions {
+      margin-top: 18px;
+    }
+
+    button {
+      padding: 12px 18px;
+      font-size: 15px;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      margin-right: 10px;
+    }
+
+    button.secondary {
+      background: #475569;
+    }
+
+    button:hover {
+      opacity: 0.92;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #22c55e;
+      padding: 16px;
+      margin-top: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      min-height: 120px;
+    }
+
+    .helper {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 8px;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>
+    AI Code Security Scanner
+    <span class="badge-beta">BETA · Free</span>
+  </h2>
+
+  <p class="subtitle">
+    Quickly scan code or GitHub repositories for security risks and generate
+    clean, audit-ready PDF reports.
+  </p>
+
+  <!-- ================= CODE SCAN ================= -->
+  <div class="card">
+    <div class="section-title">🔍 Scan Code Snippet</div>
+
+    <textarea id="codeInput" placeholder="Paste your source code here..."></textarea>
+
+    <div class="actions">
+      <button onclick="scanCode()">Scan Code</button>
+      <button class="secondary" onclick="downloadPDF()">Download PDF</button>
+    </div>
+
+    <div class="helper">
+      • No signup required<br/>
+      • Code is not stored<br/>
+      • Free during beta
+    </div>
+
+    <pre id="result">Awaiting scan…</pre>
+  </div>
+
+  <!-- ================= GITHUB SCAN ================= -->
+  <div class="card">
+    <div class="section-title">🐙 Scan GitHub Repository</div>
+
+    <input
+      type="text"
+      id="repoUrl"
+      placeholder="https://github.com/username/repository"
+    />
+
+    <div class="helper">
+      Supports public repositories. Ideal for demos, audits, and reviews.
+    </div>
+
+    <div class="actions">
+      <button onclick="scanGitHubPDF()">Scan GitHub & Download PDF</button>
+    </div>
+  </div>
+
+  <footer>
+    © 2025 AI Code Security Scanner ·
+    Automated analysis for learning and review purposes.
+    Not a replacement for a full professional security audit.
+  </footer>
+
+  <!-- ✅ IMPORTANT -->
+ <script src="script.js?v=2" defer></script>
+
+
+</body>
+</html>
