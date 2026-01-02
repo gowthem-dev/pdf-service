@@ -3,6 +3,9 @@ from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date
 from pydantic import BaseModel
+import requests
+from fastapi.responses import StreamingResponse
+import io
 import httpx
 import base64
 import re
@@ -29,7 +32,7 @@ app.add_middleware(
 DAILY_SOFT_LIMIT = 20
 scan_usage = {}  # { user_id:YYYY-MM-DD : count }
 
-PDF_SERVICE_URL = "http://localhost:4000/generate-pdf"
+PDF_SERVICE_URL = "https://pdf-service-wy8k.onrender.com/generate-pdf"
 GITHUB_API = "https://api.github.com"
 
 # ======================================================
