@@ -1,5 +1,9 @@
-let lastScanResult = null;
+/* ======================================================
+   CONFIG
+====================================================== */
+const API_BASE = "https://pdf-security-backend.onrender.com";
 
+let lastScanResult = null;
 const resultBox = document.getElementById("result");
 
 function setLoading(message) {
@@ -42,7 +46,7 @@ async function scanCode() {
   setLoading("🔍 Scanning code...");
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/scan", {
+    const res = await fetch(`${API_BASE}/scan`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -75,7 +79,7 @@ async function downloadPDF() {
   setLoading("📄 Generating PDF...");
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/generate-pdf", {
+    const res = await fetch(`${API_BASE}/generate-pdf`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -119,7 +123,7 @@ async function scanGitHubPDF() {
   setLoading("🐙 Scanning GitHub repository...");
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/scan/github/pdf", {
+    const res = await fetch(`${API_BASE}/scan/github/pdf`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -145,3 +149,8 @@ async function scanGitHubPDF() {
     console.error(err);
   }
 }
+
+/* ======================================================
+   DEBUG (OPTIONAL – YOU CAN REMOVE LATER)
+====================================================== */
+console.log("Frontend connected to:", API_BASE);
