@@ -81,8 +81,18 @@ app.post("/generate-pdf", async (req, res) => {
     const lowCount = issues.filter(i => i.severity === "low").length;
 
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+  headless: "new",
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--single-process"
+  ],
+  executablePath:
+    process.env.NODE_ENV === "production"
+      ? "/usr/bin/chromium"
+      : undefined
 });
 
 
