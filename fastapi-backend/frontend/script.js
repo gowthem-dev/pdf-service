@@ -83,8 +83,7 @@ async function downloadPDF() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        scan_result: lastScanResult,
-        paid: false
+        scan_result: lastScanResult
       })
     });
 
@@ -104,6 +103,7 @@ async function downloadPDF() {
     console.error(err);
   }
 }
+
 
 /* ======================================================
    GITHUB → PDF (WITH FRONTEND SAFETY)
