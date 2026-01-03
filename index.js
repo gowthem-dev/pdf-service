@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
 /* ======================================================
-   AI EXPLANATION ENGINE (SINGLE SOURCE)
+   AI EXPLANATION ENGINE
 ====================================================== */
 function explainIssue(issue) {
   const map = {
@@ -17,18 +17,13 @@ function explainIssue(issue) {
       fix:
         "Use parameterized queries or prepared statements.\n\n" +
         "Example:\n" +
-        "cursor.execute(\n" +
-        "  'SELECT * FROM users WHERE id=%s',\n" +
-        "  (user_id,)\n" +
-        ")"
+        "cursor.execute('SELECT * FROM users WHERE id=%s', (user_id,))"
     },
     "Hardcoded Secret": {
       impact:
         "Exposed secrets may be abused to access systems, APIs, or cloud resources.",
       fix:
-        "Move secrets to environment variables or a secure secrets manager.\n\n" +
-        "Example:\n" +
-        "API_KEY = os.getenv('API_KEY')"
+        "Move secrets to environment variables or a secure secrets manager."
     },
     "XSS": {
       impact:
@@ -46,31 +41,23 @@ function explainIssue(issue) {
 
 /* ======================================================
    POST /generate-pdf
-   👉 LAUNCH MODE: FULL REPORT FOR ALL
 ====================================================== */
 app.post("/generate-pdf", async (req, res) => {
+  let browser;
+
   try {
     const scan_result = req.body.scan_result;
-
-    // 🚀 LAUNCH MODE: ignore paid flag completely
-    const paid = true;
-
-    console.log("📄 PDF generation | LAUNCH MODE (FULL)");
 
     if (!scan_result || !Array.isArray(scan_result.issues)) {
       return res.status(400).json({ error: "Invalid scan_result" });
     }
 
-    /* ==================================================
-       NORMALIZE ISSUES (FINAL SHAPE)
-    ================================================== */
     const issues = scan_result.issues.map(issue => {
       const ai = explainIssue(issue);
-
       return {
         type: issue.type,
         severity: issue.severity || "low",
-        message: issue.message,
+        message: issue.message || "",
         impact: ai.impact,
         fix: ai.fix
       };
@@ -80,168 +67,60 @@ app.post("/generate-pdf", async (req, res) => {
     const mediumCount = issues.filter(i => i.severity === "medium").length;
     const lowCount = issues.filter(i => i.severity === "low").length;
 
-    const browser = await puppeteer.launch({
-  headless: "new",
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--single-process"
-  ],
-  executablePath:
-    process.env.NODE_ENV === "production"
-      ? "/usr/bin/chromium"
-      : undefined
-});
-
+    /* ====== CRITICAL FIX HERE ====== */
+    browser = await puppeteer.launch({
+      headless: true, // ❗ DO NOT use "new" on Render
+      executablePath: "/usr/bin/chromium",
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--single-process"
+      ]
+    });
 
     const page = await browser.newPage();
 
-    /* ================= PDF HTML ================= */
     const html = `
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8"/>
 <title>Security Audit Report</title>
-
 <style>
-body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f4f6fb;
-  margin: 0;
-  padding: 40px;
-  color: #1f2937;
-}
-.header {
-  background: #0f172a;
-  color: white;
-  padding: 28px;
-}
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-.summary {
-  display: flex;
-  gap: 16px;
-}
-.summary .card {
-  flex: 1;
-  text-align: center;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-}
-th {
-  background: #f1f5f9;
-}
-th, td {
-  padding: 14px;
-  border-bottom: 1px solid #e5e7eb;
-  vertical-align: top;
-}
-.badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: bold;
-}
-.high { background:#fee2e2; color:#b91c1c; }
-.medium { background:#ffedd5; color:#c2410c; }
-.low { background:#dcfce7; color:#166534; }
-
-.fix-box {
-  background: #f8fafc;
-  padding: 14px;
-  border-radius: 8px;
-  font-family: monospace;
-  font-size: 14px;
-  white-space: pre-wrap;
-  margin-top: 8px;
-}
-
-.footer {
-  margin-top: 40px;
-  font-size: 11px;
-  text-align: center;
-  color: #64748b;
-}
+body { font-family: Arial; padding: 40px; }
+h1 { background:#0f172a; color:white; padding:20px; }
+table { width:100%; border-collapse:collapse; }
+th, td { border:1px solid #ccc; padding:10px; }
 </style>
 </head>
-
 <body>
-
-<div class="header">
-  <h1>Security Audit Report</h1>
-  <p>Automated Code Vulnerability Scan</p>
-</div>
-
-<div class="card">
-  <b>Project:</b> ${scan_result.project || "N/A"}<br/>
-  <b>Score:</b> ${scan_result.score ?? "N/A"} / 100<br/>
-  <b>Report Type:</b> Full Security Audit
-</div>
-
-<div class="summary">
-  <div class="card"><b>Total Issues</b><br/>${issues.length}</div>
-  <div class="card"><b>High</b><br/>${highCount}</div>
-  <div class="card"><b>Medium</b><br/>${mediumCount}</div>
-  <div class="card"><b>Low</b><br/>${lowCount}</div>
-</div>
+<h1>Security Audit Report</h1>
+<p><b>Project:</b> ${scan_result.project || "N/A"}</p>
+<p><b>Total Issues:</b> ${issues.length}</p>
+<p><b>High:</b> ${highCount} | <b>Medium:</b> ${mediumCount} | <b>Low:</b> ${lowCount}</p>
 
 <table>
-<tr>
-  <th>#</th>
-  <th>Issue</th>
-  <th>Severity</th>
-  <th>Details</th>
-</tr>
-
+<tr><th>#</th><th>Issue</th><th>Severity</th><th>Details</th></tr>
 ${issues.map((i, idx) => `
 <tr>
-  <td>${idx + 1}</td>
-  <td>${i.type}</td>
-  <td><span class="badge ${i.severity}">${i.severity.toUpperCase()}</span></td>
-  <td>
-    <b>Description:</b> ${i.message}<br/><br/>
-    <b>Impact:</b> ${i.impact}<br/><br/>
-    <b>Recommended Fix:</b>
-    <div class="fix-box">${i.fix}</div>
-  </td>
-</tr>
-`).join("")}
-
+<td>${idx + 1}</td>
+<td>${i.type}</td>
+<td>${i.severity}</td>
+<td>${i.message}<br/><br/><b>Fix:</b><pre>${i.fix}</pre></td>
+</tr>`).join("")}
 </table>
-
-<div class="card">
-  <b>Recommended Next Steps</b>
-  <ul>
-    <li>Fix all HIGH severity issues immediately</li>
-    <li>Rotate exposed secrets and credentials</li>
-    <li>Re-run scan after fixes</li>
-    <li>Enable continuous monitoring for production systems</li>
-  </ul>
-</div>
-
-<div class="footer">
-  Generated on ${new Date().toLocaleString()}<br/>
-  © 2025 AI Code Security Scanner
-</div>
-
 </body>
 </html>
 `;
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
-    const pdf = await page.pdf({ format: "A4", printBackground: true });
+    await page.setContent(html, { waitUntil: "load" });
+
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true
+    });
 
     await browser.close();
 
@@ -252,6 +131,7 @@ ${issues.map((i, idx) => `
     );
     res.send(pdf);
   } catch (err) {
+    if (browser) await browser.close();
     console.error("PDF ERROR:", err);
     res.status(500).json({ error: "PDF generation failed" });
   }
@@ -260,8 +140,6 @@ ${issues.map((i, idx) => `
 /* ====================================================== */
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
-  console.log(`PDF service running on port ${PORT}`);
+  console.log(`✅ PDF service running on port ${PORT}`);
 });
-
